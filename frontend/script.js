@@ -41,37 +41,87 @@ function updateUI(data) {
 // ======================
 
 function updateSummary(data) {
+
     let income = 0;
     let expense = 0;
-    let categories = {};
+
+    let monthlyExpense = 0;
+
+    const categories = {};
+
+    const currentMonth =
+        new Date().getMonth();
+
+    const currentYear =
+        new Date().getFullYear();
 
     data.forEach(t => {
-        let amt = Number(t.amount);
+
+        const amt =
+            Number(t.amount);
+
+        const txDate =
+            new Date(t.date);
 
         if (t.type === "income") {
+
             income += amt;
+
         } else {
+
             expense += amt;
-            categories[t.category] = (categories[t.category] || 0) + amt;
+
+            categories[t.category] =
+                (categories[t.category] || 0)
+                + amt;
+
+            if (
+                txDate.getMonth() === currentMonth &&
+                txDate.getFullYear() === currentYear
+            ) {
+
+                monthlyExpense += amt;
+            }
         }
     });
 
     let top = "-";
     let max = 0;
 
-    for (let c in categories) {
-        if (categories[c] > max) {
-            max = categories[c];
-            top = c;
+    for (const category in categories) {
+
+        if (categories[category] > max) {
+
+            max = categories[category];
+            top = category;
         }
     }
 
-    document.getElementById("totalIncome").innerText = `₹${income}`;
-    document.getElementById("totalExpense").innerText = `₹${expense}`;
-    document.getElementById("netBalance").innerText = `₹${income - expense}`;
-    document.getElementById("topCategory").innerText = top;
-}
+    document.getElementById(
+        "totalIncome"
+    ).textContent =
+        `₹${income.toLocaleString()}`;
 
+    document.getElementById(
+        "totalExpense"
+    ).textContent =
+        `₹${expense.toLocaleString()}`;
+
+    document.getElementById(
+        "netBalance"
+    ).textContent =
+        `₹${(income - expense).toLocaleString()}`;
+
+    document.getElementById(
+        "topCategory"
+    ).textContent =
+        top;
+
+    document.getElementById(
+        "monthlyExpense"
+    ).textContent =
+        `₹${monthlyExpense.toLocaleString()}`;
+}
 
 // ======================
 // CHART

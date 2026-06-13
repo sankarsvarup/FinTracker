@@ -1,133 +1,131 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinTracker Dashboard</title>
 
-```
-<link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style.css">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-```
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <div class="container">
 
-```
-<h1>💰 FinTracker Dashboard</h1>
+    <h1>💰 FinTracker Dashboard</h1>
 
-<div class="summary-grid">
+    <div class="summary-grid">
 
-    <div class="summary-card">
-        <h3>Total Income</h3>
-        <p id="totalIncome">₹0</p>
+        <div class="summary-card">
+            <h3>Total Income</h3>
+            <p id="totalIncome">₹0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Total Expense</h3>
+            <p id="totalExpense">₹0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Net Balance</h3>
+            <p id="netBalance">₹0</p>
+        </div>
+
+        <div class="summary-card">
+            <h3>Top Category</h3>
+            <p id="topCategory">-</p>
+        </div>
+
+        <!-- NEW CARD -->
+        <div class="summary-card">
+            <h3>Monthly Expense</h3>
+            <p id="monthlyExpense">₹0</p>
+        </div>
+
     </div>
 
-    <div class="summary-card">
-        <h3>Total Expense</h3>
-        <p id="totalExpense">₹0</p>
+    <div class="insight-card">
+        <h2>AI Insight</h2>
+        <p id="insightText">
+            Add transactions to see insights.
+        </p>
     </div>
 
-    <div class="summary-card">
-        <h3>Net Balance</h3>
-        <p id="netBalance">₹0</p>
+    <div class="chart-card">
+        <h2>Expense Breakdown</h2>
+        <canvas id="expenseChart"></canvas>
     </div>
 
-    <div class="summary-card">
-        <h3>Top Category</h3>
-        <p id="topCategory">-</p>
+    <div class="form-card">
+
+        <h2>Add Transaction</h2>
+
+        <form id="transactionForm">
+
+            <input
+                type="number"
+                id="amount"
+                placeholder="Amount"
+                required
+            >
+
+            <input
+                type="text"
+                id="category"
+                placeholder="Category"
+                required
+            >
+
+            <select id="type">
+                <option value="income">
+                    Income
+                </option>
+
+                <option value="expense">
+                    Expense
+                </option>
+            </select>
+
+            <input
+                type="date"
+                id="date"
+                required
+            >
+
+            <input
+                type="text"
+                id="note"
+                placeholder="Note"
+            >
+
+            <button type="submit">
+                Add Transaction
+            </button>
+
+        </form>
+
     </div>
 
-</div>
+    <div class="filter-card">
 
-<div class="insight-card">
-    <h2>AI Insight</h2>
-    <p id="insightText">
-        Add transactions to see insights.
-    </p>
-</div>
+        <h2>Filter Transactions</h2>
 
-<div class="chart-card">
-    <h2>Expense Breakdown</h2>
-    <canvas id="expenseChart"></canvas>
-</div>
-
-<div class="form-card">
-
-    <h2>Add Transaction</h2>
-
-    <form id="transactionForm">
-
-        <input
-            type="number"
-            id="amount"
-            placeholder="Amount"
-            required
-        >
-
-        <input
-            type="text"
-            id="category"
-            placeholder="Category"
-            required
-        >
-
-        <select id="type">
-
-            <option value="income">
-                Income
+        <select id="categoryFilter">
+            <option value="all">
+                All Categories
             </option>
-
-            <option value="expense">
-                Expense
-            </option>
-
         </select>
 
-        <input
-            type="date"
-            id="date"
-            required
-        >
+    </div>
 
-        <input
-            type="text"
-            id="note"
-            placeholder="Note"
-        >
+    <div class="transactions-card">
 
-        <button type="submit">
-            Add Transaction
-        </button>
+        <h2>Transactions</h2>
 
-    </form>
+        <div id="transactionsList"></div>
 
-</div>
-
-<div class="filter-card">
-
-    <h2>Filter Transactions</h2>
-
-    <select id="categoryFilter">
-        <option value="all">
-            All Categories
-        </option>
-    </select>
-
-</div>
-
-<div class="transactions-card">
-
-    <h2>Transactions</h2>
-
-    <div id="transactionsList"></div>
-
-</div>
-```
+    </div>
 
 </div>
 

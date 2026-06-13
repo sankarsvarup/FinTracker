@@ -1,37 +1,59 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// ======================================
-// MIDDLEWARE
-// ======================================
-
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    allowedHeaders: ["Content-Type"]
-}));
-
+app.use(cors());
 app.use(express.json());
 
+const PORT = process.env.PORT || 5000;
 
-// ======================================
-// IN-MEMORY DATABASE
-// ======================================
+const DATA_FILE = "transactions.json";
 
 let transactions = [];
 
+// ======================================
+// LOAD DATA
+// ======================================
+
+if (fs.existsSync(DATA_FILE)) {
+    try {
+        transactions = JSON.parse(
+            fs.readFileSync(DATA_FILE, "utf8")
+        );
+    } catch (error) {
+        console.error(
+            "Error reading transactions file:",
+            error
+        );
+    }
+}
 
 // ======================================
-// HEALTH CHECK ROUTE
+// SAVE DATA
+// ======================================
+
+function saveTransactions() {
+    fs.writeFileSync(
+        DATA_FILE,
+        JSON.stringify(
+            transactions,
+            null,
+            2
+        )
+    );
+}
+
+// ======================================
+// ROOT ROUTE
 // ======================================
 
 app.get("/", (req, res) => {
-    res.send("FinTracker Backend is Running 🚀");
+    res.json({
+        message: "FinTracker Backend Running 🚀"
+    });
 });
-
 
 // ======================================
 // GET ALL TRANSACTIONS
@@ -41,67 +63,53 @@ app.get("/transactions", (req, res) => {
     res.json(transactions);
 });
 
-
 // ======================================
 // ADD TRANSACTION
 // ======================================
 
 app.post("/transactions", (req, res) => {
-    try {
-        console.log("Incoming request:", req.body);
 
-        const { amount, category, type, date, note } = req.body;
+    const transaction = {
+        id: Date.now(),
+        ...req.body
+    };
 
-        if (!amount || !category || !type || !date) {
-            return res.status(400).json({
-                message: "Missing required fields"
-            });
-        }
+    transactions.push(transaction);
 
-        const newTransaction = {
-            id: Date.now(),
-            amount: Number(amount),
-            category,
-            type,
-            date,
-            note: note || ""
-        };
+    saveTransactions();
 
-        transactions.push(newTransaction);
-
-        res.status(200).json({
-            message: "Transaction added successfully",
-            transaction: newTransaction
-        });
-
-    } catch (error) {
-        console.error("Server error:", error);
-        res.status(500).json({
-            message: "Internal server error"
-        });
-    }
-});
-
-
-// ======================================
-// DELETE TRANSACTION (OPTIONAL)
-// ======================================
-
-app.delete("/transactions/:id", (req, res) => {
-    const id = Number(req.params.id);
-
-    transactions = transactions.filter(t => t.id !== id);
-
-    res.json({
-        message: "Transaction deleted"
+    res.status(201).json({
+        message: "Transaction added successfully",
+        transaction
     });
 });
 
+// ======================================
+// DELETE TRANSACTION
+// ======================================
+
+app.delete("/transactions/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+
+    transactions = transactions.filter(
+        transaction =>
+            transaction.id !== id
+    );
+
+    saveTransactions();
+
+    res.json({
+        message: "Transaction deleted successfully"
+    });
+});
 
 // ======================================
 // START SERVER
 // ======================================
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(
+        `Server running on port ${PORT}`
+    );
 });
