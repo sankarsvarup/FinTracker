@@ -1,14 +1,15 @@
 {
-  "name": "backend",
+  "name": "fintracker-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend API for FinTracker personal finance dashboard",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["fintech", "finance", "tracker", "express", "sqlite"],
+  "author": "Svarup Sankar",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
