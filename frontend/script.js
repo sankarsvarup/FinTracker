@@ -1,9 +1,35 @@
 // ======================================
-// FINTRACKER
+// FINTRACKER - PRODUCTION FINAL SCRIPT
 // ======================================
+
+const API_URL = "https://fintracker-h00i.onrender.com";
 
 let expenseChart;
 let allTransactions = [];
+
+
+// ======================================
+// DOM READY SAFETY WRAPPER
+// ======================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+});
+
+function initApp() {
+    const form = document.getElementById("transactionForm");
+    const filter = document.getElementById("categoryFilter");
+
+    if (form) {
+        form.addEventListener("submit", handleSubmit);
+    }
+
+    if (filter) {
+        filter.addEventListener("change", filterTransactions);
+    }
+
+    loadTransactions();
+}
 
 
 // ======================================
@@ -11,461 +37,39 @@ let allTransactions = [];
 // ======================================
 
 function showToast(message) {
+    const toast = document.getElementById("toast");
 
-    const toast =
-        document.getElementById("toast");
+    if (!toast) return;
 
     toast.textContent = message;
-
     toast.classList.add("show");
 
     setTimeout(() => {
-
         toast.classList.remove("show");
-
     }, 3000);
 }
 
 
 // ======================================
-// SUMMARY DASHBOARD
+// SAFE FETCH HELPER
 // ======================================
 
-function updateSummary(transactions) {
+async function safeFetch(url, options = {}) {
+    try {
+        const response = await fetch(url, options);
+        const data = await response.json();
 
-    let income = 0;
-    let expense = 0;
-
-    const categoryTotals = {};
-
-    transactions.forEach(transaction => {
-
-        const amount =
-            Number(transaction.amount);
-
-        if (transaction.type === "income") {
-
-            income += amount;
-
-        } else {
-
-            expense += amount;
-
-            categoryTotals[transaction.category] =
-                (categoryTotals[transaction.category] || 0)
-                + amount;
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed");
         }
-    });
 
-    const balance =
-        income - expense;
+        return data;
 
-    let topCategory = "-";
-    let highestAmount = 0;
-
-    for (const category in categoryTotals) {
-
-        if (
-            categoryTotals[category] >
-            highestAmount
-        ) {
-
-            highestAmount =
-                categoryTotals[category];
-
-            topCategory =
-                category;
-        }
+    } catch (error) {
+        console.error("API Error:", error);
+        showToast("Server error. Try again.");
+        throw error;
     }
-
-    document.getElementById(
-        "totalIncome"
-    ).textContent =
-        `₹${income.toLocaleString()}`;
-
-    document.getElementById(
-        "totalExpense"
-    ).textContent =
-        `₹${expense.toLocaleString()}`;
-
-    document.getElementById(
-        "netBalance"
-    ).textContent =
-        `₹${balance.toLocaleString()}`;
-
-    document.getElementById(
-        "topCategory"
-    ).textContent =
-        topCategory;
-}
-
-
-// ======================================
-// CHART
-// ======================================
-
-function updateChart(transactions) {
-
-    const categoryTotals = {};
-
-    transactions.forEach(transaction => {
-
-        if (transaction.type === "expense") {
-
-            categoryTotals[
-                transaction.category
-            ] =
-                (categoryTotals[
-                    transaction.category
-                ] || 0)
-                + Number(transaction.amount);
-        }
-    });
-
-    const labels =
-        Object.keys(categoryTotals);
-
-    const values =
-        Object.values(categoryTotals);
-
-    const ctx =
-        document
-            .getElementById("expenseChart")
-            .getContext("2d");
-
-    if (expenseChart) {
-
-        expenseChart.destroy();
-    }
-
-    if (labels.length === 0) {
-
-        expenseChart =
-            new Chart(ctx, {
-
-                type: "doughnut",
-
-                data: {
-
-                    labels: [
-                        "No Expenses"
-                    ],
-
-                    datasets: [
-                        {
-                            data: [1],
-
-                            backgroundColor: [
-                                "#334155"
-                            ]
-                        }
-                    ]
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    cutout: "70%",
-
-                    plugins: {
-
-                        legend: {
-
-                            position: "right",
-
-                            labels: {
-
-                                color:
-                                    "#ffffff"
-                            }
-                        }
-                    }
-                }
-            });
-
-        return;
-    }
-
-    expenseChart =
-        new Chart(ctx, {
-
-            type: "doughnut",
-
-            data: {
-
-                labels: labels,
-
-                datasets: [
-                    {
-
-                        data: values,
-
-                        backgroundColor: [
-
-                            "#3B82F6",
-                            "#10B981",
-                            "#F59E0B",
-                            "#EF4444",
-                            "#8B5CF6",
-                            "#06B6D4",
-                            "#F97316",
-                            "#22C55E"
-
-                        ]
-                    }
-                ]
-            },
-
-            options: {
-
-                responsive: true,
-
-                cutout: "70%",
-
-                plugins: {
-
-                    legend: {
-
-                        position: "right",
-
-                        labels: {
-
-                            color:
-                                "#ffffff",
-
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
-}
-
-
-// ======================================
-// INSIGHT ENGINE
-// ======================================
-
-function updateInsight(transactions) {
-
-    let income = 0;
-    let expense = 0;
-
-    const categoryTotals = {};
-
-    transactions.forEach(transaction => {
-
-        const amount =
-            Number(transaction.amount);
-
-        if (transaction.type === "income") {
-
-            income += amount;
-
-        } else {
-
-            expense += amount;
-
-            categoryTotals[
-                transaction.category
-            ] =
-                (categoryTotals[
-                    transaction.category
-                ] || 0)
-                + amount;
-        }
-    });
-
-    let topCategory = "";
-    let highestAmount = 0;
-
-    for (const category in categoryTotals) {
-
-        if (
-            categoryTotals[category] >
-            highestAmount
-        ) {
-
-            highestAmount =
-                categoryTotals[category];
-
-            topCategory =
-                category;
-        }
-    }
-
-    let insight = "";
-
-    if (transactions.length === 0) {
-
-        insight =
-            "📊 Start by adding your first transaction.";
-
-    } else if (expense === 0) {
-
-        insight =
-            "🎉 Great! No expenses recorded yet.";
-
-    } else if (income > 0) {
-
-        const percentage =
-            (
-                (expense / income) * 100
-            ).toFixed(1);
-
-        insight =
-            `💡 ${topCategory} is your highest spending category. Expenses currently account for ${percentage}% of your income.`;
-
-    } else {
-
-        insight =
-            `💡 ${topCategory} is your highest spending category.`;
-    }
-
-    document
-        .getElementById(
-            "insightText"
-        )
-        .textContent =
-        insight;
-}
-
-
-// ======================================
-// TRANSACTION LIST
-// ======================================
-
-function renderTransactions(
-    transactions
-) {
-
-    const list =
-        document.getElementById(
-            "transactionsList"
-        );
-
-    list.innerHTML = "";
-
-    if (
-        transactions.length === 0
-    ) {
-
-        list.innerHTML =
-            "<p>No transactions found.</p>";
-
-        return;
-    }
-
-    transactions.forEach(
-        transaction => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-            item.classList.add(
-                "transaction-item"
-            );
-
-            const sign =
-                transaction.type ===
-                "income"
-                    ? "+"
-                    : "-";
-
-            item.innerHTML = `
-                <strong>${transaction.category}</strong>
-                <br>
-                ${sign} ₹${Number(transaction.amount).toLocaleString()}
-                <br>
-                ${transaction.date}
-            `;
-
-            list.appendChild(item);
-        }
-    );
-}
-
-
-// ======================================
-// CATEGORY FILTER
-// ======================================
-
-function populateCategories(
-    transactions
-) {
-
-    const filter =
-        document.getElementById(
-            "categoryFilter"
-        );
-
-    const currentValue =
-        filter.value;
-
-    filter.innerHTML =
-        '<option value="all">All Categories</option>';
-
-    const categories =
-        [
-            ...new Set(
-                transactions.map(
-                    t => t.category
-                )
-            )
-        ];
-
-    categories.forEach(
-        category => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                category;
-
-            option.textContent =
-                category;
-
-            filter.appendChild(
-                option
-            );
-        }
-    );
-
-    filter.value =
-        currentValue || "all";
-}
-
-function filterTransactions() {
-
-    const selectedCategory =
-        document.getElementById(
-            "categoryFilter"
-        ).value;
-
-    let filtered =
-        allTransactions;
-
-    if (
-        selectedCategory !== "all"
-    ) {
-
-        filtered =
-            allTransactions.filter(
-                transaction =>
-                    transaction.category ===
-                    selectedCategory
-            );
-    }
-
-    renderTransactions(
-        filtered
-    );
 }
 
 
@@ -474,154 +78,131 @@ function filterTransactions() {
 // ======================================
 
 async function loadTransactions() {
-
     try {
+        const transactions = await safeFetch(`${API_URL}/transactions`);
 
-        const response =
-            await fetch(
-                "http://localhost:5000/transactions"
-            );
+        allTransactions = transactions;
 
-        const transactions =
-            await response.json();
-
-        allTransactions =
-            transactions;
-
-        updateSummary(
-            transactions
-        );
-
-        updateChart(
-            transactions
-        );
-
-        updateInsight(
-            transactions
-        );
-
-        populateCategories(
-            transactions
-        );
-
+        updateSummary(transactions);
+        updateChart(transactions);
+        updateInsight(transactions);
+        populateCategories(transactions);
         filterTransactions();
 
     } catch (error) {
-
-        console.error(
-            "Error loading transactions:",
-            error
-        );
+        console.error("Load failed:", error);
     }
 }
 
 
 // ======================================
-// FORM SUBMIT
+// FORM SUBMIT HANDLER
 // ======================================
 
-const form =
-    document.getElementById(
-        "transactionForm"
-    );
+async function handleSubmit(event) {
+    event.preventDefault();
 
-form.addEventListener(
-    "submit",
-    async event => {
+    const transaction = {
+        amount: document.getElementById("amount").value,
+        category: document.getElementById("category").value,
+        type: document.getElementById("type").value,
+        date: document.getElementById("date").value,
+        note: document.getElementById("note").value
+    };
 
-        event.preventDefault();
+    try {
+        await safeFetch(`${API_URL}/transactions`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(transaction)
+        });
 
-        const transaction = {
+        showToast("Transaction added successfully");
 
-            amount:
-                document.getElementById(
-                    "amount"
-                ).value,
+        document.getElementById("transactionForm").reset();
 
-            category:
-                document.getElementById(
-                    "category"
-                ).value,
+        await loadTransactions();
 
-            type:
-                document.getElementById(
-                    "type"
-                ).value,
-
-            date:
-                document.getElementById(
-                    "date"
-                ).value,
-
-            note:
-                document.getElementById(
-                    "note"
-                ).value
-        };
-
-        try {
-
-            const response =
-                await fetch(
-                    "http://localhost:5000/transactions",
-                    {
-
-                        method: "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify(
-                                transaction
-                            )
-                    }
-                );
-
-            const result =
-                await response.json();
-
-            showToast(
-                result.message
-            );
-
-            form.reset();
-
-            await loadTransactions();
-
-        } catch (error) {
-
-            console.error(
-                error
-            );
-
-            showToast(
-                "Something went wrong."
-            );
-        }
+    } catch (error) {
+        console.error("Submit failed:", error);
     }
-);
+}
 
 
 // ======================================
-// FILTER EVENT
+// RENDER TRANSACTIONS
 // ======================================
 
-document
-    .getElementById(
-        "categoryFilter"
-    )
-    .addEventListener(
-        "change",
-        filterTransactions
-    );
+function renderTransactions(transactions) {
+    const list = document.getElementById("transactionsList");
+
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!transactions || transactions.length === 0) {
+        list.innerHTML = "<p>No transactions found.</p>";
+        return;
+    }
+
+    transactions.forEach(t => {
+        const item = document.createElement("div");
+        item.classList.add("transaction-item");
+
+        const sign = t.type === "income" ? "+" : "-";
+
+        item.innerHTML = `
+            <strong>${t.category}</strong>
+            <br>
+            ${sign} ₹${Number(t.amount).toLocaleString()}
+            <br>
+            ${t.date}
+        `;
+
+        list.appendChild(item);
+    });
+}
 
 
 // ======================================
-// INITIAL LOAD
+// CATEGORY FILTER
 // ======================================
 
-loadTransactions();
+function populateCategories(transactions) {
+    const filter = document.getElementById("categoryFilter");
+    if (!filter) return;
+
+    const currentValue = filter.value;
+
+    filter.innerHTML = '<option value="all">All Categories</option>';
+
+    const categories = [...new Set(transactions.map(t => t.category))];
+
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        filter.appendChild(option);
+    });
+
+    filter.value = currentValue || "all";
+}
+
+function filterTransactions() {
+    const filter = document.getElementById("categoryFilter");
+    if (!filter) return;
+
+    const selected = filter.value;
+
+    let filtered = allTransactions;
+
+    if (selected !== "all") {
+        filtered = allTransactions.filter(
+            t => t.category === selected
+        );
+    }
+
+    renderTransactions(filtered);
+}

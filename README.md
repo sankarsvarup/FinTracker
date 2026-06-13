@@ -135,7 +135,7 @@ node server.js
 Server runs on:
 
 ```text
-http://localhost:5000
+https://fintracker-h00i.onrender.com
 ```
 
 ---
