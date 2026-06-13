@@ -1,166 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinTracker</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinTracker - Finance Dashboard</title>
 
-    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-    <div class="container">
+    <!-- ======================================
+         HEADER
+    ====================================== -->
+    <header>
+        <h1>💰 FinTracker Dashboard</h1>
+    </header>
 
-        <!-- PAGE TITLE -->
+    <!-- ======================================
+         SUMMARY SECTION
+    ====================================== -->
+    <section class="summary">
 
-        <h1>💎 FinTracker</h1>
-
-        <!-- SUMMARY DASHBOARD -->
-
-        <div class="summary-grid">
-
-            <div class="summary-card income-card">
-                <h3>Total Income</h3>
-                <p id="totalIncome">₹0</p>
-            </div>
-
-            <div class="summary-card expense-card">
-                <h3>Total Expense</h3>
-                <p id="totalExpense">₹0</p>
-            </div>
-
-            <div class="summary-card balance-card">
-                <h3>Net Balance</h3>
-                <p id="netBalance">₹0</p>
-            </div>
-
-            <div class="summary-card category-card">
-                <h3>Top Category</h3>
-                <p id="topCategory">-</p>
-            </div>
-
+        <div class="card">
+            <h3>Income</h3>
+            <p id="totalIncome">₹0</p>
         </div>
 
-        <!-- ADD TRANSACTION -->
-
-        <div class="form-card">
-
-            <h2>Add Transaction</h2>
-
-            <form id="transactionForm">
-
-                <input
-                    type="number"
-                    id="amount"
-                    placeholder="Amount"
-                    required
-                >
-
-                <input
-                    type="text"
-                    id="category"
-                    placeholder="Category"
-                    required
-                >
-
-                <select id="type">
-
-                    <option value="income">
-                        Income
-                    </option>
-
-                    <option value="expense">
-                        Expense
-                    </option>
-
-                </select>
-
-                <input
-                    type="date"
-                    id="date"
-                    required
-                >
-
-                <input
-                    type="text"
-                    id="note"
-                    placeholder="Note (Optional)"
-                >
-
-                <button type="submit">
-                    Add Transaction
-                </button>
-
-            </form>
-
+        <div class="card">
+            <h3>Expense</h3>
+            <p id="totalExpense">₹0</p>
         </div>
 
-        <!-- CHART -->
-
-        <div class="chart-card">
-
-            <h2>📊 Spending Breakdown</h2>
-
-            <canvas id="expenseChart"></canvas>
-
+        <div class="card">
+            <h3>Net Balance</h3>
+            <p id="netBalance">₹0</p>
         </div>
 
-        <!-- INSIGHT -->
-
-        <div class="insight-card">
-
-            <h2>💡 Financial Insight</h2>
-
-            <p id="insightText">
-                No insights available yet.
-            </p>
-
+        <div class="card">
+            <h3>Top Category</h3>
+            <p id="topCategory">-</p>
         </div>
 
-        <!-- FILTER -->
+    </section>
 
-        <div class="filter-card">
+    <!-- ======================================
+         INSIGHT
+    ====================================== -->
+    <section class="insight">
+        <h2>Insight</h2>
+        <p id="insightText">Add transactions to see insights</p>
+    </section>
 
-            <h2>🔍 Filter Transactions</h2>
+    <!-- ======================================
+         CHART SECTION
+    ====================================== -->
+    <section class="chart-section">
+        <canvas id="expenseChart"></canvas>
+    </section>
 
-            <select id="categoryFilter">
+    <!-- ======================================
+         FORM SECTION
+    ====================================== -->
+    <section class="form-section">
 
-                <option value="all">
-                    All Categories
-                </option>
+        <h2>Add Transaction</h2>
 
+        <form id="transactionForm">
+
+            <input type="number" id="amount" placeholder="Amount" required />
+
+            <input type="text" id="category" placeholder="Category" required />
+
+            <select id="type" required>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
             </select>
 
-        </div>
+            <input type="date" id="date" required />
 
-        <!-- TRANSACTIONS -->
+            <input type="text" id="note" placeholder="Note (optional)" />
 
-        <div class="transactions-card">
+            <button type="submit">Add Transaction</button>
 
-            <h2>📋 Recent Transactions</h2>
+        </form>
 
-            <div id="transactionsList">
+    </section>
 
-            </div>
+    <!-- ======================================
+         FILTER
+    ====================================== -->
+    <section class="filter-section">
 
-        </div>
+        <select id="categoryFilter">
+            <option value="all">All Categories</option>
+        </select>
 
-    </div>
+    </section>
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- ======================================
+         TRANSACTIONS LIST
+    ====================================== -->
+    <section class="transactions">
 
+        <h2>Transactions</h2>
+
+        <div id="transactionsList"></div>
+
+    </section>
+
+    <!-- ======================================
+         TOAST
+    ====================================== -->
     <div id="toast"></div>
 
-    <!-- CHART JS -->
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- APP SCRIPT -->
-
+    <!-- ======================================
+         SCRIPT
+    ====================================== -->
     <script src="script.js"></script>
 
 </body>
-
 </html>

@@ -1,5 +1,5 @@
 // ======================================
-// FINTRACKER - PRODUCTION FINAL SCRIPT
+// FINTRACKER - FINAL STABLE SCRIPT
 // ======================================
 
 const API_URL = "https://fintracker-h00i.onrender.com";
@@ -9,36 +9,11 @@ let allTransactions = [];
 
 
 // ======================================
-// DOM READY SAFETY WRAPPER
-// ======================================
-
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-});
-
-function initApp() {
-    const form = document.getElementById("transactionForm");
-    const filter = document.getElementById("categoryFilter");
-
-    if (form) {
-        form.addEventListener("submit", handleSubmit);
-    }
-
-    if (filter) {
-        filter.addEventListener("change", filterTransactions);
-    }
-
-    loadTransactions();
-}
-
-
-// ======================================
-// TOAST NOTIFICATION
+// TOAST
 // ======================================
 
 function showToast(message) {
     const toast = document.getElementById("toast");
-
     if (!toast) return;
 
     toast.textContent = message;
@@ -51,158 +26,257 @@ function showToast(message) {
 
 
 // ======================================
-// SAFE FETCH HELPER
-// ======================================
-
-async function safeFetch(url, options = {}) {
-    try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Request failed");
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error("API Error:", error);
-        showToast("Server error. Try again.");
-        throw error;
-    }
-}
-
-
-// ======================================
 // LOAD TRANSACTIONS
 // ======================================
 
 async function loadTransactions() {
     try {
-        const transactions = await safeFetch(`${API_URL}/transactions`);
+        const response = await fetch(`${API_URL}/transactions`);
+        const transactions = await response.json();
 
-        allTransactions = transactions;
+        console.log("Loaded transactions:", transactions);
 
-        updateSummary(transactions);
-        updateChart(transactions);
-        updateInsight(transactions);
-        populateCategories(transactions);
+        allTransactions = transactions || [];
+
+        updateSummary(allTransactions);
+        updateChart(allTransactions);
+        updateInsight(allTransactions);
+        populateCategories(allTransactions);
         filterTransactions();
 
     } catch (error) {
-        console.error("Load failed:", error);
+        console.error("Error loading transactions:", error);
+        showToast("Failed to load data");
     }
 }
 
 
 // ======================================
-// FORM SUBMIT HANDLER
+// FORM SUBMIT
 // ======================================
 
-async function handleSubmit(event) {
-    event.preventDefault();
+const form = document.getElementById("transactionForm");
 
-    const transaction = {
-        amount: document.getElementById("amount").value,
-        category: document.getElementById("category").value,
-        type: document.getElementById("type").value,
-        date: document.getElementById("date").value,
-        note: document.getElementById("note").value
-    };
+if (form) {
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-    try {
-        await safeFetch(`${API_URL}/transactions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(transaction)
-        });
+        const transaction = {
+            amount: document.getElementById("amount").value,
+            category: document.getElementById("category").value,
+            type: document.getElementById("type").value,
+            date: document.getElementById("date").value,
+            note: document.getElementById("note").value
+        };
 
-        showToast("Transaction added successfully");
+        try {
+            const response = await fetch(`${API_URL}/transactions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(transaction)
+            });
 
-        document.getElementById("transactionForm").reset();
+            const result = await response.json();
 
-        await loadTransactions();
+            if (response.ok) {
+                showToast(result.message || "Transaction added");
+                form.reset();
+                await loadTransactions();
+            } else {
+                showToast(result.message || "Failed to add transaction");
+            }
 
-    } catch (error) {
-        console.error("Submit failed:", error);
-    }
-}
-
-
-// ======================================
-// RENDER TRANSACTIONS
-// ======================================
-
-function renderTransactions(transactions) {
-    const list = document.getElementById("transactionsList");
-
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    if (!transactions || transactions.length === 0) {
-        list.innerHTML = "<p>No transactions found.</p>";
-        return;
-    }
-
-    transactions.forEach(t => {
-        const item = document.createElement("div");
-        item.classList.add("transaction-item");
-
-        const sign = t.type === "income" ? "+" : "-";
-
-        item.innerHTML = `
-            <strong>${t.category}</strong>
-            <br>
-            ${sign} ₹${Number(t.amount).toLocaleString()}
-            <br>
-            ${t.date}
-        `;
-
-        list.appendChild(item);
+        } catch (error) {
+            console.error("Submit error:", error);
+            showToast("Network error");
+        }
     });
 }
 
 
 // ======================================
-// CATEGORY FILTER
+// SUMMARY DASHBOARD
+// ======================================
+
+function updateSummary(transactions) {
+    let income = 0;
+    let expense = 0;
+
+    const categoryTotals = {};
+
+    transactions.forEach(t => {
+        const amount = parseFloat(t.amount) || 0;
+
+        if (t.type === "income") {
+            income += amount;
+        } else {
+            expense += amount;
+
+            categoryTotals[t.category] =
+                (categoryTotals[t.category] || 0) + amount;
+        }
+    });
+
+    const balance = income - expense;
+
+    let topCategory = "-";
+    let highest = 0;
+
+    for (const cat in categoryTotals) {
+        if (categoryTotals[cat] > highest) {
+            highest = categoryTotals[cat];
+            topCategory = cat;
+        }
+    }
+
+    const incomeEl = document.getElementById("totalIncome");
+    const expenseEl = document.getElementById("totalExpense");
+    const balanceEl = document.getElementById("netBalance");
+    const topEl = document.getElementById("topCategory");
+
+    if (incomeEl) incomeEl.textContent = `₹${income.toLocaleString()}`;
+    if (expenseEl) expenseEl.textContent = `₹${expense.toLocaleString()}`;
+    if (balanceEl) balanceEl.textContent = `₹${balance.toLocaleString()}`;
+    if (topEl) topEl.textContent = topCategory;
+}
+
+
+// ======================================
+// INSIGHT
+// ======================================
+
+function updateInsight(transactions) {
+    const insightEl = document.getElementById("insightText");
+    if (!insightEl) return;
+
+    let income = 0;
+    let expense = 0;
+
+    const categoryTotals = {};
+
+    transactions.forEach(t => {
+        const amount = parseFloat(t.amount) || 0;
+
+        if (t.type === "income") income += amount;
+        else {
+            expense += amount;
+            categoryTotals[t.category] =
+                (categoryTotals[t.category] || 0) + amount;
+        }
+    });
+
+    let topCategory = "";
+    let max = 0;
+
+    for (const c in categoryTotals) {
+        if (categoryTotals[c] > max) {
+            max = categoryTotals[c];
+            topCategory = c;
+        }
+    }
+
+    let msg = "";
+
+    if (transactions.length === 0) {
+        msg = "Start adding transactions to see insights.";
+    } else if (expense === 0) {
+        msg = "No expenses yet — great job!";
+    } else if (income > 0) {
+        const percent = ((expense / income) * 100).toFixed(1);
+        msg = `${topCategory} is your top expense category. You spent ${percent}% of income.`;
+    } else {
+        msg = `${topCategory} is your top expense category.`;
+    }
+
+    insightEl.textContent = msg;
+}
+
+
+// ======================================
+// TRANSACTIONS LIST
+// ======================================
+
+function renderTransactions(transactions) {
+    const list = document.getElementById("transactionsList");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!transactions.length) {
+        list.innerHTML = "<p>No transactions found.</p>";
+        return;
+    }
+
+    transactions.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "transaction-item";
+
+        const sign = t.type === "income" ? "+" : "-";
+
+        div.innerHTML = `
+            <strong>${t.category}</strong><br>
+            ${sign} ₹${Number(t.amount).toLocaleString()}<br>
+            ${t.date}
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+
+// ======================================
+// FILTER
 // ======================================
 
 function populateCategories(transactions) {
     const filter = document.getElementById("categoryFilter");
     if (!filter) return;
 
-    const currentValue = filter.value;
+    const current = filter.value;
 
     filter.innerHTML = '<option value="all">All Categories</option>';
 
-    const categories = [...new Set(transactions.map(t => t.category))];
+    const cats = [...new Set(transactions.map(t => t.category))];
 
-    categories.forEach(category => {
-        const option = document.createElement("option");
-        option.value = category;
-        option.textContent = category;
-        filter.appendChild(option);
+    cats.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        filter.appendChild(opt);
     });
 
-    filter.value = currentValue || "all";
+    filter.value = current || "all";
 }
 
 function filterTransactions() {
     const filter = document.getElementById("categoryFilter");
     if (!filter) return;
 
-    const selected = filter.value;
+    const value = filter.value;
 
-    let filtered = allTransactions;
-
-    if (selected !== "all") {
-        filtered = allTransactions.filter(
-            t => t.category === selected
-        );
-    }
+    const filtered =
+        value === "all"
+            ? allTransactions
+            : allTransactions.filter(t => t.category === value);
 
     renderTransactions(filtered);
 }
+
+
+// ======================================
+// EVENT LISTENER
+// ======================================
+
+const filterEl = document.getElementById("categoryFilter");
+if (filterEl) {
+    filterEl.addEventListener("change", filterTransactions);
+}
+
+
+// ======================================
+// INIT
+// ======================================
+
+loadTransactions();
