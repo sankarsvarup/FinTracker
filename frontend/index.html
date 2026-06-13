@@ -1,69 +1,139 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>FinTracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTracker Dashboard</title>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+```
+<link rel="stylesheet" href="./style.css">
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="./style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+```
+
 </head>
-
 <body>
 
-    <h1>💰 FinTracker Dashboard</h1>
+<div class="container">
 
-    <!-- SUMMARY -->
-    <div class="summary">
-        <h3>Income: <span id="totalIncome">₹0</span></h3>
-        <h3>Expense: <span id="totalExpense">₹0</span></h3>
-        <h3>Balance: <span id="netBalance">₹0</span></h3>
-        <h3>Top Category: <span id="topCategory">-</span></h3>
+```
+<h1>💰 FinTracker Dashboard</h1>
+
+<div class="summary-grid">
+
+    <div class="summary-card">
+        <h3>Total Income</h3>
+        <p id="totalIncome">₹0</p>
     </div>
 
-    <!-- INSIGHT -->
-    <div>
-        <h2 id="insightText">Add transactions to see insights</h2>
+    <div class="summary-card">
+        <h3>Total Expense</h3>
+        <p id="totalExpense">₹0</p>
     </div>
 
-    <!-- CHART -->
+    <div class="summary-card">
+        <h3>Net Balance</h3>
+        <p id="netBalance">₹0</p>
+    </div>
+
+    <div class="summary-card">
+        <h3>Top Category</h3>
+        <p id="topCategory">-</p>
+    </div>
+
+</div>
+
+<div class="insight-card">
+    <h2>AI Insight</h2>
+    <p id="insightText">
+        Add transactions to see insights.
+    </p>
+</div>
+
+<div class="chart-card">
+    <h2>Expense Breakdown</h2>
     <canvas id="expenseChart"></canvas>
+</div>
 
-    <!-- FORM -->
+<div class="form-card">
+
+    <h2>Add Transaction</h2>
+
     <form id="transactionForm">
 
-        <input type="number" id="amount" placeholder="Amount" required />
+        <input
+            type="number"
+            id="amount"
+            placeholder="Amount"
+            required
+        >
 
-        <input type="text" id="category" placeholder="Category" required />
+        <input
+            type="text"
+            id="category"
+            placeholder="Category"
+            required
+        >
 
         <select id="type">
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
+
+            <option value="income">
+                Income
+            </option>
+
+            <option value="expense">
+                Expense
+            </option>
+
         </select>
 
-        <input type="date" id="date" required />
+        <input
+            type="date"
+            id="date"
+            required
+        >
 
-        <input type="text" id="note" placeholder="Note" />
+        <input
+            type="text"
+            id="note"
+            placeholder="Note"
+        >
 
-        <button type="submit">Add</button>
+        <button type="submit">
+            Add Transaction
+        </button>
+
     </form>
 
-    <!-- FILTER -->
+</div>
+
+<div class="filter-card">
+
+    <h2>Filter Transactions</h2>
+
     <select id="categoryFilter">
-        <option value="all">All</option>
+        <option value="all">
+            All Categories
+        </option>
     </select>
 
-    <!-- LIST -->
+</div>
+
+<div class="transactions-card">
+
+    <h2>Transactions</h2>
+
     <div id="transactionsList"></div>
 
-    <!-- TOAST -->
-    <div id="toast"></div>
+</div>
+```
 
-    <!-- SCRIPT -->
-    <script src="./script.js"></script>
+</div>
+
+<div id="toast"></div>
+
+<script src="./script.js"></script>
 
 </body>
 </html>
