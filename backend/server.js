@@ -8,21 +8,35 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// in-memory storage
+// simple in-memory database
 let transactions = [];
 let id = 1;
+
+// health check route (fixes 404 on homepage)
+app.get("/", (req, res) => {
+  res.send("FinTracker Backend is Running 🚀");
+});
+
+// get all transactions
+app.get("/transactions", (req, res) => {
+  res.json(transactions);
+});
 
 // add transaction
 app.post("/transactions", (req, res) => {
   const { amount, category, type, date, note } = req.body;
 
+  if (!amount || !category || !type || !date) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
   const newTransaction = {
     id: id++,
-    amount,
+    amount: Number(amount),
     category,
     type,
     date,
-    note
+    note: note || ""
   };
 
   transactions.push(newTransaction);
@@ -33,14 +47,15 @@ app.post("/transactions", (req, res) => {
   });
 });
 
-// get all transactions
-app.get("/transactions", (req, res) => {
-  res.json(transactions);
-});
+// delete transaction (optional but useful)
+app.delete("/transactions/:id", (req, res) => {
+  const { id: paramId } = req.params;
 
-// health check route
-app.get("/", (req, res) => {
-  res.send("FinTracker Backend is Running 🚀");
+  transactions = transactions.filter(
+    (t) => t.id !== parseInt(paramId)
+  );
+
+  res.json({ message: "Transaction deleted" });
 });
 
 // start server
