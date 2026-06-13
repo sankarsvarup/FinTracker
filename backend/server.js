@@ -4,61 +4,104 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// middleware
-app.use(cors());
+// ======================================
+// MIDDLEWARE
+// ======================================
+
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
-// simple in-memory database
+
+// ======================================
+// IN-MEMORY DATABASE
+// ======================================
+
 let transactions = [];
-let id = 1;
 
-// health check route (fixes 404 on homepage)
+
+// ======================================
+// HEALTH CHECK ROUTE
+// ======================================
+
 app.get("/", (req, res) => {
-  res.send("FinTracker Backend is Running 🚀");
+    res.send("FinTracker Backend is Running 🚀");
 });
 
-// get all transactions
+
+// ======================================
+// GET ALL TRANSACTIONS
+// ======================================
+
 app.get("/transactions", (req, res) => {
-  res.json(transactions);
+    res.json(transactions);
 });
 
-// add transaction
+
+// ======================================
+// ADD TRANSACTION
+// ======================================
+
 app.post("/transactions", (req, res) => {
-  const { amount, category, type, date, note } = req.body;
+    try {
+        console.log("Incoming request:", req.body);
 
-  if (!amount || !category || !type || !date) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
+        const { amount, category, type, date, note } = req.body;
 
-  const newTransaction = {
-    id: id++,
-    amount: Number(amount),
-    category,
-    type,
-    date,
-    note: note || ""
-  };
+        if (!amount || !category || !type || !date) {
+            return res.status(400).json({
+                message: "Missing required fields"
+            });
+        }
 
-  transactions.push(newTransaction);
+        const newTransaction = {
+            id: Date.now(),
+            amount: Number(amount),
+            category,
+            type,
+            date,
+            note: note || ""
+        };
 
-  res.json({
-    message: "Transaction added",
-    transaction: newTransaction
-  });
+        transactions.push(newTransaction);
+
+        res.status(200).json({
+            message: "Transaction added successfully",
+            transaction: newTransaction
+        });
+
+    } catch (error) {
+        console.error("Server error:", error);
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
 });
 
-// delete transaction (optional but useful)
+
+// ======================================
+// DELETE TRANSACTION (OPTIONAL)
+// ======================================
+
 app.delete("/transactions/:id", (req, res) => {
-  const { id: paramId } = req.params;
+    const id = Number(req.params.id);
 
-  transactions = transactions.filter(
-    (t) => t.id !== parseInt(paramId)
-  );
+    transactions = transactions.filter(t => t.id !== id);
 
-  res.json({ message: "Transaction deleted" });
+    res.json({
+        message: "Transaction deleted"
+    });
 });
 
-// start server
+
+// ======================================
+// START SERVER
+// ======================================
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
