@@ -1,224 +1,139 @@
-// ======================================
-// FINTRACKER - FINAL STABLE SCRIPT
-// ======================================
-
 const API_URL = "https://fintracker-h00i.onrender.com";
 
-let expenseChart;
 let allTransactions = [];
+let expenseChart;
 
 
-// ======================================
-// TOAST
-// ======================================
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    if (!toast) return;
-
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 3000);
-}
-
-
-// ======================================
-// LOAD TRANSACTIONS
-// ======================================
+// ======================
+// LOAD DATA
+// ======================
 
 async function loadTransactions() {
     try {
-        const response = await fetch(`${API_URL}/transactions`);
-        const transactions = await response.json();
+        const res = await fetch(`${API_URL}/transactions`);
+        const data = await res.json();
 
-        console.log("Loaded transactions:", transactions);
+        allTransactions = data;
 
-        allTransactions = transactions || [];
+        updateUI(data);
 
-        updateSummary(allTransactions);
-        updateChart(allTransactions);
-        updateInsight(allTransactions);
-        populateCategories(allTransactions);
-        filterTransactions();
-
-    } catch (error) {
-        console.error("Error loading transactions:", error);
-        showToast("Failed to load data");
+    } catch (err) {
+        console.error("Failed to load data", err);
     }
 }
 
 
-// ======================================
-// FORM SUBMIT
-// ======================================
+// ======================
+// UPDATE ALL UI
+// ======================
 
-const form = document.getElementById("transactionForm");
-
-if (form) {
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const transaction = {
-            amount: document.getElementById("amount").value,
-            category: document.getElementById("category").value,
-            type: document.getElementById("type").value,
-            date: document.getElementById("date").value,
-            note: document.getElementById("note").value
-        };
-
-        try {
-            const response = await fetch(`${API_URL}/transactions`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(transaction)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                showToast(result.message || "Transaction added");
-                form.reset();
-                await loadTransactions();
-            } else {
-                showToast(result.message || "Failed to add transaction");
-            }
-
-        } catch (error) {
-            console.error("Submit error:", error);
-            showToast("Network error");
-        }
-    });
+function updateUI(data) {
+    updateSummary(data);
+    updateChart(data);
+    updateInsight(data);
+    renderTransactions(data);
+    populateCategories(data);
 }
 
 
-// ======================================
-// SUMMARY DASHBOARD
-// ======================================
+// ======================
+// SUMMARY
+// ======================
 
-function updateSummary(transactions) {
+function updateSummary(data) {
     let income = 0;
     let expense = 0;
+    let categories = {};
 
-    const categoryTotals = {};
-
-    transactions.forEach(t => {
-        const amount = parseFloat(t.amount) || 0;
+    data.forEach(t => {
+        let amt = Number(t.amount);
 
         if (t.type === "income") {
-            income += amount;
+            income += amt;
         } else {
-            expense += amount;
-
-            categoryTotals[t.category] =
-                (categoryTotals[t.category] || 0) + amount;
+            expense += amt;
+            categories[t.category] = (categories[t.category] || 0) + amt;
         }
     });
 
-    const balance = income - expense;
-
-    let topCategory = "-";
-    let highest = 0;
-
-    for (const cat in categoryTotals) {
-        if (categoryTotals[cat] > highest) {
-            highest = categoryTotals[cat];
-            topCategory = cat;
-        }
-    }
-
-    const incomeEl = document.getElementById("totalIncome");
-    const expenseEl = document.getElementById("totalExpense");
-    const balanceEl = document.getElementById("netBalance");
-    const topEl = document.getElementById("topCategory");
-
-    if (incomeEl) incomeEl.textContent = `₹${income.toLocaleString()}`;
-    if (expenseEl) expenseEl.textContent = `₹${expense.toLocaleString()}`;
-    if (balanceEl) balanceEl.textContent = `₹${balance.toLocaleString()}`;
-    if (topEl) topEl.textContent = topCategory;
-}
-
-
-// ======================================
-// INSIGHT
-// ======================================
-
-function updateInsight(transactions) {
-    const insightEl = document.getElementById("insightText");
-    if (!insightEl) return;
-
-    let income = 0;
-    let expense = 0;
-
-    const categoryTotals = {};
-
-    transactions.forEach(t => {
-        const amount = parseFloat(t.amount) || 0;
-
-        if (t.type === "income") income += amount;
-        else {
-            expense += amount;
-            categoryTotals[t.category] =
-                (categoryTotals[t.category] || 0) + amount;
-        }
-    });
-
-    let topCategory = "";
+    let top = "-";
     let max = 0;
 
-    for (const c in categoryTotals) {
-        if (categoryTotals[c] > max) {
-            max = categoryTotals[c];
-            topCategory = c;
+    for (let c in categories) {
+        if (categories[c] > max) {
+            max = categories[c];
+            top = c;
         }
     }
 
-    let msg = "";
-
-    if (transactions.length === 0) {
-        msg = "Start adding transactions to see insights.";
-    } else if (expense === 0) {
-        msg = "No expenses yet — great job!";
-    } else if (income > 0) {
-        const percent = ((expense / income) * 100).toFixed(1);
-        msg = `${topCategory} is your top expense category. You spent ${percent}% of income.`;
-    } else {
-        msg = `${topCategory} is your top expense category.`;
-    }
-
-    insightEl.textContent = msg;
+    document.getElementById("totalIncome").innerText = `₹${income}`;
+    document.getElementById("totalExpense").innerText = `₹${expense}`;
+    document.getElementById("netBalance").innerText = `₹${income - expense}`;
+    document.getElementById("topCategory").innerText = top;
 }
 
 
-// ======================================
-// TRANSACTIONS LIST
-// ======================================
+// ======================
+// CHART
+// ======================
 
-function renderTransactions(transactions) {
-    const list = document.getElementById("transactionsList");
-    if (!list) return;
+function updateChart(data) {
+    let expenses = {};
 
-    list.innerHTML = "";
+    data.forEach(t => {
+        if (t.type === "expense") {
+            expenses[t.category] = (expenses[t.category] || 0) + Number(t.amount);
+        }
+    });
 
-    if (!transactions.length) {
-        list.innerHTML = "<p>No transactions found.</p>";
+    const labels = Object.keys(expenses);
+    const values = Object.values(expenses);
+
+    const ctx = document.getElementById("expenseChart").getContext("2d");
+
+    if (expenseChart) expenseChart.destroy();
+
+    expenseChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels,
+            datasets: [{
+                data: values
+            }]
+        }
+    });
+}
+
+
+// ======================
+// INSIGHT
+// ======================
+
+function updateInsight(data) {
+    const el = document.getElementById("insightText");
+
+    if (data.length === 0) {
+        el.innerText = "No data yet";
         return;
     }
 
-    transactions.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "transaction-item";
+    el.innerText = "Your data is updating successfully 🚀";
+}
 
-        const sign = t.type === "income" ? "+" : "-";
+
+// ======================
+// LIST
+// ======================
+
+function renderTransactions(data) {
+    const list = document.getElementById("transactionsList");
+    list.innerHTML = "";
+
+    data.forEach(t => {
+        const div = document.createElement("div");
 
         div.innerHTML = `
-            <strong>${t.category}</strong><br>
-            ${sign} ₹${Number(t.amount).toLocaleString()}<br>
-            ${t.date}
+            <b>${t.category}</b> - ${t.type} - ₹${t.amount} - ${t.date}
         `;
 
         list.appendChild(div);
@@ -226,57 +141,72 @@ function renderTransactions(transactions) {
 }
 
 
-// ======================================
+// ======================
 // FILTER
-// ======================================
+// ======================
 
-function populateCategories(transactions) {
+function populateCategories(data) {
     const filter = document.getElementById("categoryFilter");
-    if (!filter) return;
 
-    const current = filter.value;
+    let cats = [...new Set(data.map(t => t.category))];
 
-    filter.innerHTML = '<option value="all">All Categories</option>';
-
-    const cats = [...new Set(transactions.map(t => t.category))];
+    filter.innerHTML = `<option value="all">All</option>`;
 
     cats.forEach(c => {
-        const opt = document.createElement("option");
+        let opt = document.createElement("option");
         opt.value = c;
         opt.textContent = c;
         filter.appendChild(opt);
     });
-
-    filter.value = current || "all";
-}
-
-function filterTransactions() {
-    const filter = document.getElementById("categoryFilter");
-    if (!filter) return;
-
-    const value = filter.value;
-
-    const filtered =
-        value === "all"
-            ? allTransactions
-            : allTransactions.filter(t => t.category === value);
-
-    renderTransactions(filtered);
 }
 
 
-// ======================================
-// EVENT LISTENER
-// ======================================
+// ======================
+// FORM SUBMIT
+// ======================
 
-const filterEl = document.getElementById("categoryFilter");
-if (filterEl) {
-    filterEl.addEventListener("change", filterTransactions);
-}
+document.getElementById("transactionForm")
+.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const body = {
+        amount: document.getElementById("amount").value,
+        category: document.getElementById("category").value,
+        type: document.getElementById("type").value,
+        date: document.getElementById("date").value,
+        note: document.getElementById("note").value
+    };
+
+    try {
+        await fetch(`${API_URL}/transactions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        loadTransactions();
+
+    } catch (err) {
+        console.error(err);
+    }
+});
 
 
-// ======================================
+// ======================
+// FILTER EVENT
+// ======================
+
+document.getElementById("categoryFilter")
+.addEventListener("change", (e) => {
+    const val = e.target.value;
+
+    if (val === "all") {
+        renderTransactions(allTransactions);
+    } else {
+        renderTransactions(allTransactions.filter(t => t.category === val));
+    }
+});
+
+
 // INIT
-// ======================================
-
 loadTransactions();

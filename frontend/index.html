@@ -2,126 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FinTracker - Finance Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FinTracker</title>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
 
-    <!-- ======================================
-         HEADER
-    ====================================== -->
-    <header>
-        <h1>💰 FinTracker Dashboard</h1>
-    </header>
+    <h1>💰 FinTracker Dashboard</h1>
 
-    <!-- ======================================
-         SUMMARY SECTION
-    ====================================== -->
-    <section class="summary">
+    <!-- SUMMARY -->
+    <div class="summary">
+        <h3>Income: <span id="totalIncome">₹0</span></h3>
+        <h3>Expense: <span id="totalExpense">₹0</span></h3>
+        <h3>Balance: <span id="netBalance">₹0</span></h3>
+        <h3>Top Category: <span id="topCategory">-</span></h3>
+    </div>
 
-        <div class="card">
-            <h3>Income</h3>
-            <p id="totalIncome">₹0</p>
-        </div>
+    <!-- INSIGHT -->
+    <div>
+        <h2 id="insightText">Add transactions to see insights</h2>
+    </div>
 
-        <div class="card">
-            <h3>Expense</h3>
-            <p id="totalExpense">₹0</p>
-        </div>
+    <!-- CHART -->
+    <canvas id="expenseChart"></canvas>
 
-        <div class="card">
-            <h3>Net Balance</h3>
-            <p id="netBalance">₹0</p>
-        </div>
+    <!-- FORM -->
+    <form id="transactionForm">
 
-        <div class="card">
-            <h3>Top Category</h3>
-            <p id="topCategory">-</p>
-        </div>
+        <input type="number" id="amount" placeholder="Amount" required />
 
-    </section>
+        <input type="text" id="category" placeholder="Category" required />
 
-    <!-- ======================================
-         INSIGHT
-    ====================================== -->
-    <section class="insight">
-        <h2>Insight</h2>
-        <p id="insightText">Add transactions to see insights</p>
-    </section>
-
-    <!-- ======================================
-         CHART SECTION
-    ====================================== -->
-    <section class="chart-section">
-        <canvas id="expenseChart"></canvas>
-    </section>
-
-    <!-- ======================================
-         FORM SECTION
-    ====================================== -->
-    <section class="form-section">
-
-        <h2>Add Transaction</h2>
-
-        <form id="transactionForm">
-
-            <input type="number" id="amount" placeholder="Amount" required />
-
-            <input type="text" id="category" placeholder="Category" required />
-
-            <select id="type" required>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
-            </select>
-
-            <input type="date" id="date" required />
-
-            <input type="text" id="note" placeholder="Note (optional)" />
-
-            <button type="submit">Add Transaction</button>
-
-        </form>
-
-    </section>
-
-    <!-- ======================================
-         FILTER
-    ====================================== -->
-    <section class="filter-section">
-
-        <select id="categoryFilter">
-            <option value="all">All Categories</option>
+        <select id="type">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
         </select>
 
-    </section>
+        <input type="date" id="date" required />
 
-    <!-- ======================================
-         TRANSACTIONS LIST
-    ====================================== -->
-    <section class="transactions">
+        <input type="text" id="note" placeholder="Note" />
 
-        <h2>Transactions</h2>
+        <button type="submit">Add</button>
+    </form>
 
-        <div id="transactionsList"></div>
+    <!-- FILTER -->
+    <select id="categoryFilter">
+        <option value="all">All</option>
+    </select>
 
-    </section>
+    <!-- LIST -->
+    <div id="transactionsList"></div>
 
-    <!-- ======================================
-         TOAST
-    ====================================== -->
+    <!-- TOAST -->
     <div id="toast"></div>
 
-    <!-- ======================================
-         SCRIPT
-    ====================================== -->
-    <script src="script.js"></script>
+    <!-- SCRIPT -->
+    <script src="./script.js"></script>
 
 </body>
 </html>
